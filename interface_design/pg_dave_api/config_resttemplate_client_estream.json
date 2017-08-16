@@ -1,0 +1,6 @@
+{
+	"invokerPackage" : "de.estream.http.client.pgdave", 
+	"modelPackage" : "de.estream.http.client.pgdave.model",
+	"apiPackage" : "de.estream.http.client.pgdave.api",
+	"java8" : true
+}
