@@ -123,9 +123,6 @@ definitions:
         items:
           type: string
       connectionType:
-        description: >-
-          This determines whether a connection to the raw data or aggregated
-          data is provided
         $ref: '#/definitions/ConnectionType'
       connectorStatus:
         type: string
@@ -141,6 +138,9 @@ definitions:
         type: string
   ConnectionType:
     type: object
+    description: >-
+      This determines whether a connection to the raw data or aggregated
+      data is provided
     required:
       - dataFormat
     properties:
