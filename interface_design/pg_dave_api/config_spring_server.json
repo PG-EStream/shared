@@ -1,0 +1,9 @@
+{
+	"delegatePattern" : true,
+	"basePackage": "de.estream.mock.pgdave.web.rest.api.generated", 
+	"modelPackage" : "de.estream.mock.pgdave.web.rest.api.generated.model",
+	"apiPackage" : "de.estream.mock.pgdave.web.rest.api.generated.api",
+	"library":"spring-boot",
+	"java8" : true,
+	"useOptional": true
+}

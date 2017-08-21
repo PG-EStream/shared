@@ -5,7 +5,8 @@ info:
 host: '127.0.0.1:9090'
 basePath: /api
 tags:
-- name: "in discussion"
+- name: "HistoricData"
+- name: "DataMining"
 consumes:
   - application/json
 produces:
@@ -13,10 +14,12 @@ produces:
 paths:
   /data/smgws/:
     post:
+      tags:
+        - "HistoricData"
       description: |
         Returns previously saved raw smart meter data specificed by a given set of Smart Meter Gateway IDS and corresponding Smart Meter IDs to uniquely define them. The parameters 'from' and 'to' can be set to specify a time interval. If 'from' and 'to' are not set, the complete saved history will be returned. If either only 'from' or 'to' is set, the returned values are located either within the time interval [#OLDEST, 'to'] or ['from', #NOW].
       summary: Get historic Smart Meter Data by a given set of Smart Meter Gateway IDs and corresponding Smart Meter IDs
-      operationId: getSmartMeterMDataByIds
+      operationId: getSmartMeterDataByIds
       parameters:
         - name: smdata
           in: body
@@ -43,7 +46,7 @@ paths:
   /data/weather/:
     post:
       tags:
-        - "in discussion"
+        - "HistoricData"
       description: |
         Returns historic weather data for a specified time interval and a set of locations.
       summary: Get historic weather data by time and locations.
@@ -72,11 +75,11 @@ paths:
           schema:
             $ref: '#/definitions/BaseErrorResponse'
                 
-  /datamining/:
+  /datamining/latests/:
     #For a RESTful Api this should be a get method, but we need to send a body containing our pmml, change path?
-    get:
+    post:
       tags:
-        - "in discussion"
+        - "DataMining"
       description: |
         Returns latest PMML with results for a given mining model specification.
       summary: Get latest PMML
@@ -92,9 +95,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/PMML'
+            $ref: '#/definitions/PMML'
 
         '204':
           description: There is no latest Mining Model (PMML) for the requested specification.
@@ -108,13 +109,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/BaseErrorResponse'
-            
+          
+  /datamining/commissions/:    
     post:
       tags:
-        - "in discussion"
+        - "DataMining"
       description: |
-        Asynchronously request a new PMML model with results matching the passed model specification. The analyzed values based on historic data are send to the committed kafka connector in PMML format.
-      summary: Get 
+        "Asynchronously" request a new PMML model with results matching the passed model specification. The analyzed values based on historic data are send to the committed kafka connector in PMML format.
+      summary: Request to analyze a new specific Mining Model on historic data.
       operationId: createDataMiningAnalysis
       parameters:
         - name: dataminingrequest
@@ -127,10 +129,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/PMML'
-
-        '204':
-          description: There is no latest Mining Model (PMML) for the requested specification.
+            $ref: '#/definitions/DataMiningStatus'
           
         '400':
           description: Missing or invalid payload
@@ -148,25 +147,87 @@ definitions:
     type: object
     description: Replace with JPMML classes in code
     
-    
+  #Should be possible to combine multiple Swagger files so we do not need to define this in multiple files (e.g. KafkaConnector, ConnectionType).
   KafkaConnector:
-    #TODO: Change structure if known!
+    description: >-
+      Kafka Connector to stream, filter, and transform data from a given DataSource to
+      Kafka or vice versa.
     type: object
-    description: Kafka Connector to stream, filter, and transform data from a given DataSource to Kafka or vice versa.
-    
+    required:
+      - sinkUrl
+      - connectorType
+    properties:
+      name:
+        type: string
+        example: test-connector
+      sinkUrl:
+        type: string
+        description: Address of the data source
+        example: 'http://localhost:9000'
+      connectorType:
+        type: string
+        description: Kafka Connector Type
+        enum:
+          - hdfs
+          - jdbc
+      connectorProperties:
+        type: array
+        description: Properties for the data source which will receive the data.
+        items:
+          type: string
+      connectionType:
+        $ref: '#/definitions/ConnectionType'
+      connectorStatus:
+        type: string
+        enum:
+          - UNASSIGNED
+          - RUNNING
+          - PAUSED
+          - FAILED    
+
+  ConnectionType:
+    type: object
+    description: >-
+      This determines whether a connection to the raw data or aggregated
+      data is provided
+    required:
+      - dataFormat
+    properties:
+      dataFormat:
+        type: string
+        description: >-
+          Data format specifies whether the data stream should output the data
+          as is or whether it should process the data by a given model. In the
+          case of the latter, a modelId is required.
+        enum:
+          - raw
+          - processed
+      modelId:
+        type: integer
     
   DataMiningRequest:
     type: object
     properties:
       from:
-        $ref: '#/definitions/From'
+        type: integer	
+        format: int64
       to: 
-        $ref: '#/definitions/To'
+        type: integer	
+        format: int64
       kafka_connector:
         $ref: '#/definitions/KafkaConnector'      
       PMML:
         $ref: '#/definitions/PMML'
-    
+        
+  DataMiningStatus:
+    type: object
+    properties:
+      status:
+        type: string
+        enum:
+          - ERROR
+          - RUNNING
+          - DONE
     
   Coordinate:
     type: object
@@ -189,9 +250,11 @@ definitions:
       - coordinates
     properties:
       from:
-        $ref: '#/definitions/From'
+        type: integer	
+        format: int64
       to: 
-        $ref: '#/definitions/To'
+        type: integer	
+        format: int64
       coordinates:
         type: array
         items:
@@ -203,9 +266,11 @@ definitions:
       - devices
     properties:
       from:
-        $ref: '#/definitions/From'
+        type: integer	
+        format: int64
       to: 
-        $ref: '#/definitions/To'
+        type: integer	
+        format: int64
       devices:
         description: A list of a Smart Meter Gateways IDs with corresponding Smart Meter IDs.
         type: array
@@ -322,14 +387,14 @@ definitions:
         type: string
    
         
-  From:
-    type: integer	
-    format: int64
-    description: Start of a time interval as unix epoch time
+#  From:
+#    type: integer	
+#    format: int64
+#    description: Start of a time interval as unix epoch time
     
     
-  To:
-    type: integer	
-    format: int64
-    description: End of a time interval as unix epoch time
+#  To:
+#    type: integer	
+#    format: int64
+#    description: End of a time interval as unix epoch time
       
