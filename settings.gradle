@@ -1,0 +1,3 @@
+rootProject.name = 'shared'
+include ":iec62056_models"
+project(":iec62056_models").projectDir = file("./iec62056_models")
