@@ -1,4 +1,4 @@
-package de.offis.estream.iec62506.model;
+package de.offis.estream.shared.iec62506.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
