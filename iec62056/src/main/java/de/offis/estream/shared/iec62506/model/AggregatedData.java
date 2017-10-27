@@ -23,14 +23,14 @@ public class AggregatedData extends RawData {
 	
 //////////////SCHEMA	
 	@JsonIgnore
-	private static final String AGGREGATION_TYPE_KEY = "aggregation_type" ;//FIXME is ignored by jackson somwehow
+	private static final String AGGREGATION_TYPE_KEY = "aggregation_type" ;
 	
 	@JsonIgnore
 	private static final String AGGREGATION_VALUE_KEY = "aggregation_value" ;
 //////////////
 	
 	@JsonProperty("aggregation_value")
-	private double aggregationValue;
+	private Double aggregationValue;
 	
 	@JsonProperty("aggregation_type")
 	private String aggregationType;
@@ -42,7 +42,7 @@ public class AggregatedData extends RawData {
 			if(getSchema().get(AGGREGATION_TYPE_KEY).equalsIgnoreCase(e.getKey())) {
 				setAggregationType((String) e.getValue());
 			} else if (getSchema().get(AGGREGATION_VALUE_KEY).equalsIgnoreCase(e.getKey())) {
-				setAggregationValue((double) e.getValue());
+				setAggregationValue((Double) cast(e.getValue(), new Double(1)));
 			}
 		}
 	}
@@ -57,7 +57,7 @@ public class AggregatedData extends RawData {
 
 
 	@JsonGetter
-	public double getAggregationValue() {
+	public Double getAggregationValue() {
 		return aggregationValue;
 	}
 
