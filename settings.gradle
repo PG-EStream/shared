@@ -1,2 +1,3 @@
 rootProject.name = 'shared-all'
 include 'iec62056'
+include 'interface_design'

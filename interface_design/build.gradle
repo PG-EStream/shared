@@ -1,0 +1,6 @@
+group 'de.offis.estream'
+version LIBRARY_VERSION
+
+apply plugin: 'java-library'
+
+sourceSets.main.resources.srcDirs('resources')
