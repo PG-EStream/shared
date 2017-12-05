@@ -78,6 +78,10 @@ paths:
   /datamining/latests/:
     #For a RESTful Api this should be a get method, but we need to send a body containing our pmml, change path?
     post:
+      consumes:
+        - "application/xml"
+      produces:
+        - "application/xml"
       tags:
         - "DataMining"
       description: |
@@ -90,27 +94,26 @@ paths:
           required: true
           description: The pmml specification determining what mining algorithm should be used on which data among other things.
           schema:
-            $ref: '#/definitions/PMML'
+            type: string
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/PMML'
-
+            type: string
         '204':
           description: There is no latest Mining Model (PMML) for the requested specification.
-          
+
         '400':
           description: Missing or invalid payload
           schema:
             $ref: '#/definitions/BaseErrorResponse'
-              
+
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/BaseErrorResponse'
-          
-  /datamining/commissions/:    
+
+  /datamining/commissions/:
     post:
       tags:
         - "DataMining"
@@ -130,23 +133,23 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/DataMiningStatus'
-          
+
         '400':
           description: Missing or invalid payload
           schema:
             $ref: '#/definitions/BaseErrorResponse'
-              
+
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/BaseErrorResponse'   
-          
-                  
+            $ref: '#/definitions/BaseErrorResponse'
+
+
 definitions:
   PMML:
-    type: object
-    description: Replace with JPMML classes in code
-    
+    type: string
+    description: PMML is returned as String
+
   #Should be possible to combine multiple Swagger files so we do not need to define this in multiple files (e.g. KafkaConnector, ConnectionType).
   KafkaConnector:
     description: >-
@@ -183,7 +186,7 @@ definitions:
           - UNASSIGNED
           - RUNNING
           - PAUSED
-          - FAILED    
+          - FAILED
 
   ConnectionType:
     type: object
@@ -204,21 +207,21 @@ definitions:
           - processed
       modelId:
         type: integer
-    
+
   DataMiningRequest:
     type: object
     properties:
       from:
-        type: integer	
+        type: integer
         format: int64
-      to: 
-        type: integer	
+      to:
+        type: integer
         format: int64
       kafka_connector:
-        $ref: '#/definitions/KafkaConnector'      
+        $ref: '#/definitions/KafkaConnector'
       PMML:
-        $ref: '#/definitions/PMML'
-        
+        type: string
+
   DataMiningStatus:
     type: object
     properties:
@@ -228,7 +231,7 @@ definitions:
           - ERROR
           - RUNNING
           - DONE
-    
+
   Coordinate:
     type: object
     properties:
@@ -242,7 +245,7 @@ definitions:
         format: double
         description: The latitude component of a geographic coordinate
         example: 8.2146700
-      
+
 
   WeatherDataRequest:
     type: object
@@ -250,10 +253,10 @@ definitions:
       - coordinates
     properties:
       from:
-        type: integer	
+        type: integer
         format: int64
-      to: 
-        type: integer	
+      to:
+        type: integer
         format: int64
       coordinates:
         type: array
@@ -266,10 +269,10 @@ definitions:
       - devices
     properties:
       from:
-        type: integer	
+        type: integer
         format: int64
-      to: 
-        type: integer	
+      to:
+        type: integer
         format: int64
       devices:
         description: A list of a Smart Meter Gateways IDs with corresponding Smart Meter IDs.
@@ -287,8 +290,8 @@ definitions:
               items:
                 type: string
               example: [sm_01, sm_02, sm_03]
-     
-        
+
+
   SmartMeterRawData:
     type: object
     required:
@@ -323,8 +326,8 @@ definitions:
       status:
         description: TODO
         type: string
-    
-        
+
+
   WeatherData:
     type: object
     properties:
@@ -340,13 +343,13 @@ definitions:
         format: float
       global_radiation:
         type: number
-        description: Global radiation from the sky which was falling onto the horizontal surface on the ground correspoding to the coordinate. Including the direct solar radiation and the diffuse radiation in watt per square meter (W/m²)
+        description: Global radiation from the sky which was falling onto the horizontal surface on the ground correspoding to the coordinate. Including the direct solar radiation and the diffuse radiation in watt per square meter (W/mÂ²)
         format: double
-      wind_speed: 
+      wind_speed:
         type: number
         format: float
         description: Wind speed in m/s
-      wind_direction: 
+      wind_direction:
         type: number
         format: float
         description: Wind direction in degrees (meteorological) e.g. 348.75 <= North <= 11.25
@@ -361,19 +364,19 @@ definitions:
         - partly cloudy sky
         - cloudy sky
         - overcast sky
-      cloud_value: 
+      cloud_value:
         type: number
-        description: Cloudiness in percentage        
+        description: Cloudiness in percentage
         format: float
-    
-        
+
+
   BaseErrorResponse:
     type: object
     properties:
       timestamp:
         type: integer
         format: int64
-        description: Date and time as unix epoch time  
+        description: Date and time as unix epoch time
       status:
         type: integer
         format: int32
@@ -385,16 +388,15 @@ definitions:
         type: string
       path:
         type: string
-   
-        
+
+
 #  From:
-#    type: integer	
+#    type: integer
 #    format: int64
 #    description: Start of a time interval as unix epoch time
-    
-    
+
+
 #  To:
-#    type: integer	
+#    type: integer
 #    format: int64
 #    description: End of a time interval as unix epoch time
-      
