@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.0.8
+  version: 0.0.10
   title: PG-Dave Mock API
 host: '127.0.0.1:9090'
 basePath: /api
@@ -16,8 +16,8 @@ paths:
     get:
       tags:
         - HistoricData
-      description: ''
-      summary: Get status about Request for SmartMeter
+      description: Get status about pending requests for Smart Meter data by target topic
+      summary: Get status about pending requests for Smart Meter data by target topic
       parameters:
         - name: topic
           type: string
@@ -27,22 +27,25 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TopicStatus'
+            $ref: '#/definitions/TopicStatusResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
   /data/smgws/:
     post:
       tags:
         - HistoricData
       description: >
-        Returns previously saved raw smart meter data specificed by a given set
-        of Smart Meter Gateway IDS and corresponding Smart Meter IDs to uniquely
-        define them. The parameters 'from' and 'to' can be set to specify a time
-        interval. If 'from' and 'to' are not set, the complete saved history
-        will be returned. If either only 'from' or 'to' is set, the returned
-        values are located either within the time interval [#OLDEST, 'to'] or
-        ['from', #NOW].
+        Returns previously saved raw Smart Meter data. Optionally a set of Smart
+        Meter IDs can be specified. The parameters 'from' and 'to' can also be
+        set optionally to specify a time period. If 'from' and 'to' are not set,
+        the complete saved history will be returned. If either only 'from' or
+        'to' is set, the returned values are located either within the time
+        period [#OLDEST, 'to'] or ['from', #NOW].
       summary: >-
-        Get historic Smart Meter Data by a given set of Smart Meter Gateway IDs
-        and corresponding Smart Meter IDs
+        Get historic Smart Meter data by a given set of Smart Meter IDs and a
+        target time period
       operationId: getSmartMeterDataByIds
       parameters:
         - name: smdata
@@ -52,17 +55,19 @@ paths:
             $ref: '#/definitions/SmartMeterDataRequest'
       responses:
         '200':
-          description: Array of raw historic Smart Meter data. In XML-Format für Datensätze
+          description: >-
+            The requested data will be published via the specified broker at the
+            uri to the topic
           schema:
             type: array
             items:
-              $ref: '#/definitions/Topic'
+              $ref: '#/definitions/TopicResponse'
         '400':
-          description: Missing or invalid payload
+          description: 'Missing or invalid payload, see response for details'
           schema:
             $ref: '#/definitions/BaseErrorResponse'
         default:
-          description: Unexpected error
+          description: 'Unexpected error, see response for details'
           schema:
             $ref: '#/definitions/BaseErrorResponse'
   /data/weather/nearestWeatherStations/:
@@ -70,28 +75,33 @@ paths:
       tags:
         - HistoricData
       description: >-
-        Get the Weatherstation from given coordinates.  Without coordinates, it
-        would given all Stations
-      summary: Get the nearest Weatherstation
-      operationId: getnearestWeatherSationByCoor
+        Get the weather station nearest to the given corrdinates and within an
+        optionally given radius. If the radius is specified the response list
+        constains the all wheater stations within the radius ordered by the
+        ascending distance to the coordinate.
+      summary: Get a list of the nearest weather stations of a given coordinate
+      operationId: getnearestWeatherStationsByCoor
       parameters:
         - in: body
           name: coordinate
-          description: ''
-          required: false
+          required: true
           schema:
             $ref: '#/definitions/NearestWeatherStationRequest'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/WeatherStationData'
+            $ref: '#/definitions/WeatherStationDataResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
   '/data/weather/{topic}':
     get:
       tags:
         - HistoricData
-      description: ''
-      summary: Get status about Request for data of weather
+      description: Get status about pending requests for weather data by target topic
+      summary: Get status about pending requests for weather data by target topic
       parameters:
         - name: topic
           type: string
@@ -101,29 +111,90 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TopicStatus'
-  /data/weather/:
+            $ref: '#/definitions/TopicStatusResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /data/weather/climate/:
     post:
       tags:
         - HistoricData
       description: >
-        Returns historic weather data for a specified time interval and a set of
-        locations. Punktmessung
-      summary: Get historic weather data by time and locations.
-      operationId: getWeatherDataByGeo
+        Returns climate data for a required coordinate and an optionally
+        specified time period. Each data record contatins the average values for
+        one day
+      summary: Get historic climate data by corrdinate and time period
+      operationId: getClimateDataByGeo
       parameters:
-        - name: wdrequest
+        - name: clirequest
           in: body
           required: true
           schema:
             $ref: '#/definitions/WeatherDataRequest'
       responses:
         '200':
-          description: Array of historic weather data.
+          description: Array of weather station data.
           schema:
-            $ref: '#/definitions/TopicWeather'
+            $ref: '#/definitions/TopicWeatherResponse'
         '400':
-          description: Missing or invalid payload
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /data/weather/sun/:
+    post:
+      tags:
+        - HistoricData
+      description: >
+        Returns sun radiation data for a required coordinate and an optionally
+        specified time period
+      summary: Get historic sun radiation data by corrdinate and time period
+      operationId: getSunRadiationDataByGeo
+      parameters:
+        - name: srarequest
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/WeatherDataRequest'
+      responses:
+        '200':
+          description: Array of weather station data.
+          schema:
+            $ref: '#/definitions/TopicWeatherResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /data/weather/wind/:
+    post:
+      tags:
+        - HistoricData
+      description: >
+        Returns wind data for a required coordinate and an optionally specified
+        time period
+      summary: Get historic wind radiation data by corrdinate and time period
+      operationId: getWindDataByGeo
+      parameters:
+        - name: wirequest
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/WeatherDataRequest'
+      responses:
+        '200':
+          description: Array of weather station data.
+          schema:
+            $ref: '#/definitions/TopicWeatherResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
           schema:
             $ref: '#/definitions/BaseErrorResponse'
         default:
@@ -134,22 +205,25 @@ paths:
     get:
       tags:
         - DataMining
-      description: |
-        Test
-      summary: Get all Models that DAvE offer
+      description: Get all PMML models that DAvE offer
+      summary: Get all PMML models that DAvE offer
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/Models'
+            $ref: '#/definitions/ModelsResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
   '/datamining/latests/{modelid}':
     get:
       tags:
         - DataMining
       description: |
-        Returns latest PMML with results for a given mining model specification.
-      summary: Get latest PMML
-      operationId: getLatestMiningModelBySpec
+        Returns latest build PMML model by a given modelId.
+      summary: Get latest PMML by Id
+      operationId: getLatestMiningModelById
       parameters:
         - in: path
           name: modelid
@@ -160,7 +234,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/PmmlModel'
+            $ref: '#/definitions/PmmlModelResponse'
         '204':
           description: >-
             There is no latest Mining Model (PMML) for the requested
@@ -178,7 +252,7 @@ paths:
       tags:
         - DataMining
       description: |
-        Returns latest PMML with results for a given mining model specification.
+        Returns latest PMML model for a given mining model specification.
       summary: Get latest PMML
       operationId: getLatestMiningModelByPMML
       parameters:
@@ -186,16 +260,14 @@ paths:
           name: pmml
           required: true
           schema:
-            $ref: '#/definitions/PmmlModel'
+            $ref: '#/definitions/PmmlModelRequest'
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/PmmlModel'
+            $ref: '#/definitions/TopicResponse'
         '204':
-          description: >-
-            There is no latest Mining Model (PMML) for the requested
-            specification.
+          description: There is no latest model for the requested specification.
         '400':
           description: Missing or invalid payload
           schema:
@@ -208,8 +280,8 @@ paths:
     get:
       tags:
         - DataMining
-      description: Erhalte den Status über einen Auftrag
-      summary: Get status about submission
+      description: Get status about pending requests for PMML model by target topic
+      summary: Get status about pending requests for PMML model by target topic
       operationId: getSubmissionStatusByTopic
       parameters:
         - in: path
@@ -220,28 +292,32 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TopicStatus'
-  /datamining/submissions/:
+            $ref: '#/definitions/TopicStatusResponse'
+        '400':
+          description: 'Missing or invalid payload, see response for details'
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /datamining/submission/:
     post:
       tags:
         - DataMining
       description: >
-        "Asynchronously" request a new PMML model with results matching the
-        passed model specification. The analyzed values based on historic data
-        are send to the committed kafka connector in PMML format.
-      summary: Request to analyze a new specific Mining Model on historic data.
+        Request a new PMML model with results matching the passed model
+        specification. After building a valid requested model it will be
+        published on the message broker at the topic provided in the response
+      summary: Request to build a PMML model by specifications
       operationId: createDataMiningAnalysis
       parameters:
         - in: body
           name: pmml
           required: true
           schema:
-            $ref: '#/definitions/PmmlModel'
+            $ref: '#/definitions/PmmlModelRequest'
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/Topic'
+            $ref: '#/definitions/TopicResponse'
         '400':
           description: Missing or invalid payload
           schema:
@@ -255,30 +331,6 @@ paths:
           schema:
             $ref: '#/definitions/BaseErrorResponse'
 definitions:
-  PmmlModel:
-    type: object
-    description: pmml String muss base64 xml
-    properties:
-      broker:
-        type: string
-        example: kafka
-      pmml:
-        type: string
-  WeatherStationData:
-    description: ''
-    type: object
-    properties:
-      stationId:
-        type: string
-      name:
-        type: string
-      coor:
-        $ref: '#/definitions/Coordinate'
-      alt:
-        type: number
-        format: int64
-      state:
-        type: string
   TopicStatusEnum:
     description: ''
     type: string
@@ -286,47 +338,6 @@ definitions:
       - RUNNING
       - SUCCESS
       - FAILURE
-  TopicStatus:
-    description: ''
-    type: object
-    properties:
-      status:
-        $ref: '#/definitions/TopicStatusEnum'
-  Topic:
-    description: get topic with uri
-    type: object
-    properties:
-      uri:
-        type: string
-        example: 'localhost:12345'
-      topic:
-        type: string
-        example: 9bd2380a-1b30-4d89-85b1-139322bec43e
-  TopicWeather:
-    description: get topic with uri
-    type: object
-    properties:
-      uri:
-        type: string
-        example: 'localhost:12345'
-      topic:
-        type: string
-        example: 9bd2380a-1b30-4d89-85b1-139322bec43e
-      station:
-        $ref: '#/definitions/WeatherStationData'
-  Models:
-    description: Which Models offer DAvE
-    type: object
-    properties:
-      modelId:
-        type: integer
-        example: 1
-      name:
-        type: string
-        example: Support Vector Machine
-      description:
-        type: string
-        example: Vorhersage des Stromverbrauchs
   Coordinate:
     type: object
     properties:
@@ -340,82 +351,12 @@ definitions:
         format: double
         description: The latitude component of a geographic coordinate
         example: 8.21467
-  NearestWeatherStationRequest:
-    description: ''
-    type: object
-    required: 
-      - coor
-    properties:
-      coor:
-        $ref: '#/definitions/Coordinate'
-      radius:
-        type: number
-        format: float
-        example: 40
-        default: -1
-        description: Radius in km
-  WeatherDataRequest:
-    type: object
-    required:
-      - topic
-      - broker
-    properties:
-      broker:
-        type: string
-        example: Kafka
-      from:
-        description: Timestamp Epoch and the default is -1 for without beginning
-        type: integer
-        format: int64
-        default: '-1'
-        example: '6340009'
-      to:
-        description: Timestamp Epoch and default is -1 for without end
-        type: integer
-        format: int64
-        default: '-1'
-        example: '79012323'
-      coordinates:
-        $ref: '#/definitions/Coordinate'
-  SmartMeterDataRequest:
-    type: object
-    required:
-      - name
-      - broker
-    properties:
-      broker:
-        type: string
-        example: Kafka
-      from:
-        description: Timestamp Epoch and the default is -1 for without beginning
-        type: integer
-        format: int64
-        default: '-1'
-        example: '6340009'
-      to:
-        description: Timestamp Epoch and default is -1 for without end
-        type: integer
-        format: int64
-        default: '-1'
-        example: '79012323'
-      devices:
-        description: >-
-          A list of a Smart Meter Gateways IDs with corresponding Smart Meter
-          IDs.
-        type: array
-        items:
-          type: string
-        example:
-          - sm_752b370b-8e33-43e9-aec1-0b764ec00561
-          - sm_5fdf2caf-c2dd-4981-8e71-a6f87393f108
-          - sm_38e3e715-0e70-4585-8bc8-bfa9a82e32f7
   SmartMeterRawData:
     type: object
     properties:
       device:
         type: string
-        description: >-
-          The Smart Meter ID which is globally unique.
+        description: The Smart Meter ID which is globally unique.
         example: sm_752b370b-8e33-43e9-aec1-0b764ec00561
       attribute:
         type: object
@@ -433,7 +374,7 @@ definitions:
           value:
             type: number
             format: float
-  WeatherRawData:
+  ClimateRawData:
     type: object
     properties:
       stationsId:
@@ -444,47 +385,47 @@ definitions:
         description: Date and time as unix epoch time
       qn_3:
         type: integer
-        description: Qualitätsniveau - scale 1 to 10
+        description: Quality 1 - 10
       fx:
         type: number
         format: double
-        description: Tagesmaximum Windspitze
+        description: Maximum daily wind peak
       fm:
         type: number
         format: double
-        description: Tagesminimum Windgeschwindigkeit
+        description: Daily minimum wind speed
       qn_4:
         type: integer
         format: int32
-        description: Qualitätsniveau 1 - 10
+        description: Quality 1 - 10
       rsk:
         type: integer
         format: int32
-        description: tägliche Niederschlagshöhe
+        description: Daily rainfall
       rskf:
         type: integer
         format: int32
-        description: Niederschlagsform
+        description: Precipitation
       sdk:
         type: number
         format: double
-        description: tägliche Sonnenscheindauer
+        description: Daily sunshine duration
       shk_tag:
         type: number
         format: double
-        description: Tageswert Schneehöhe
+        description: Daily snow depth
       nm:
         type: number
         format: double
-        description: Tagesmittel des Bedeckungsgrades
+        description: Daily average of the degree of coverage
       vpm:
         type: number
         format: double
-        description: Tagesmittel des Dampfdruckes
+        description: Daily average of the vapor pressure
       pm:
         type: number
         format: double
-        description: Tagesmittel des Luftdrucks
+        description: Daily average of the atmospheric pressure
       tmk:
         type: number
         description: >-
@@ -494,21 +435,131 @@ definitions:
       upm:
         type: number
         format: double
-        description: Tagesmittel der relativen Feuchte
+        description: Daily average relative humidity
       txk:
         type: number
         format: double
-        description: Tagesmaximum der Lufttemperatur
+        description: Daily maximum of the air temperature
       tnk:
         type: number
         format: double
-        description: Tagesminimum der Lufttemperatur
+        description: Daily minimum of the air temperature
       tgk:
         type: number
         format: double
-        description: Minimum der Lufttemperatur am Erdboden
+        description: Minimum of air temperature at the ground
+      eor:
+        description: End of Record
+        
+  SolarRaditionRawData:
+    type: object
+    properties:
+      stationsId:
+        type: string
+      messDatum:
+        type: integer
+        format: int64
+        description: Date and time as unix epoch time
+      qn_7:
+        type: string
+      sd_so:
+        type: string
       eor:
         description: End of Record (Aufzeichungsende)
+  WindRawData:
+    type: object
+    properties:
+      stationsId:
+        type: string
+      messDatum:
+        type: integer
+        format: int64
+        description: Date and time as unix epoch time
+      d:
+        type: string
+      f:
+        type: string
+      qn_3:
+        type: string
+      eor:
+        description: End of Record (Aufzeichungsende)
+    
+  PmmlModelRequest:
+    type: object
+    description: PMML model as base64 encoded json object
+    properties:
+      broker:
+        type: string
+        example: kafka
+      pmml:
+        type: string
+  NearestWeatherStationRequest:
+    description: ''
+    type: object
+    required:
+      - coor
+    properties:
+      coor:
+        $ref: '#/definitions/Coordinate'
+      radius:
+        type: number
+        format: float
+        example: 40
+        default: -1
+        description: Radius in km
+  WeatherDataRequest:
+    type: object
+    required:
+      - broker
+    properties:
+      broker:
+        type: string
+        example: Kafka
+      from:
+        description: Timestamp Epoch and default is -1 indicating no start date
+        type: integer
+        format: int64
+        default: -1
+        example: 6340009
+      to:
+        description: Timestamp Epoch and default is -1 indicating no end date
+        type: integer
+        format: int64
+        default: '-1'
+        example: '79012323'
+      coordinates:
+        $ref: '#/definitions/Coordinate'
+  SmartMeterDataRequest:
+    type: object
+    required:
+      - broker
+    properties:
+      broker:
+        type: string
+        example: Kafka
+      from:
+        description: Timestamp Epoch and default is -1 indicating no start date
+        type: integer
+        format: int64
+        default: '-1'
+        example: '6340009'
+      to:
+        description: Timestamp Epoch and default is -1 indicating no end date
+        type: integer
+        format: int64
+        default: '-1'
+        example: '79012323'
+      devices:
+        description: >-
+          A list of a Smart Meter Gateways IDs with corresponding Smart Meter
+          IDs.
+        type: array
+        items:
+          type: string
+        example:
+          - sm_752b370b-8e33-43e9-aec1-0b764ec00561
+          - sm_5fdf2caf-c2dd-4981-8e71-a6f87393f108
+          - sm_38e3e715-0e70-4585-8bc8-bfa9a82e32f7
   BaseErrorResponse:
     type: object
     properties:
@@ -527,3 +578,73 @@ definitions:
         type: string
       path:
         type: string
+  TopicWeatherResponse:
+    description: get topic with uri
+    type: object
+    properties:
+      uri:
+        type: string
+        example: 'localhost:12345'
+      topic:
+        type: string
+        example: 9bd2380a-1b30-4d89-85b1-139322bec43e
+      station:
+        $ref: '#/definitions/WeatherStationDataResponse'
+  TopicStatusResponse:
+    description: ''
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/TopicStatusEnum'
+  TopicResponse:
+    description: get topic with uri
+    type: object
+    properties:
+      uri:
+        type: string
+        example: 'localhost:12345'
+      topic:
+        type: string
+        example: 9bd2380a-1b30-4d89-85b1-139322bec43e
+  WeatherStationDataResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        stationId:
+          type: string
+        name:
+          type: string
+        coor:
+          $ref: '#/definitions/Coordinate'
+        alt:
+          type: number
+          format: int64
+        state:
+          type: string
+  PmmlModelResponse:
+    type: object
+    description: PMML model as base64 encoded json object
+    properties:
+      pmml:
+        type: string
+  ModelsResponse:
+    description: Which Models offer DAvE
+    type: array
+    items:
+      type: object
+      properties:
+        modelId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Support Vector Machine
+        discription:
+          type: string
+          example: Forecast model for power consumption
+        lastbuild:
+          type: integer
+          format: int64
+          description: Date and time as unix epoch time
+          example: 1413958770
