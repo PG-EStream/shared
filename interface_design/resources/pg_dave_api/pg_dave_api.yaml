@@ -265,7 +265,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/TopicResponse'
+            $ref: '#/definitions/PmmlModelResponse'
         '204':
           description: There is no latest model for the requested specification.
         '400':
