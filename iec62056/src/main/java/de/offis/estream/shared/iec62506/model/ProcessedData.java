@@ -21,12 +21,10 @@ public final class ProcessedData {
 	@JsonProperty("result")
 	private Result result;
 
-	@JsonProperty("result")
 	public Result getResult() {
 		return result;
 	}
 
-	@JsonProperty("result")
 	public void setResult(Result result) {
 		this.result = result;
 	}
@@ -42,6 +40,10 @@ public final class ProcessedData {
 			return new RawData();
 		case ("AGGREGATEDDATA"):
 			return new AggregatedData();
+		case ("PREDICTEDDATA"):
+			 return new PredictedData();
+		case ("ANOMALYDATA"):
+			return new AnomalyData();
 		}
 		return null;
 	}

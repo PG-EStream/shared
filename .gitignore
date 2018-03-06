@@ -40,3 +40,7 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 /.idea/modules/shared_main.iml
 /.idea/modules/shared_test.iml
+*.classpath
+*.project
+.settings/
+interface_design/bin/
