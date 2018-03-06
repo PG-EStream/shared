@@ -21,12 +21,10 @@ public final class ProcessedData {
 	@JsonProperty("result")
 	private Result result;
 
-	@JsonProperty("result")
 	public Result getResult() {
 		return result;
 	}
 
-	@JsonProperty("result")
 	public void setResult(Result result) {
 		this.result = result;
 	}
