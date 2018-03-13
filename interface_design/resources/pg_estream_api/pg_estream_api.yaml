@@ -1,0 +1,1209 @@
+swagger: '2.0'
+info:
+  description: This is a sample.
+  version: '1.0'
+  title: Swagger Gradle Plugin Sample
+  termsOfService: 'http://www.example.com/termsOfService'
+  contact:
+    email: pg-e-stream@informatik.uni-oldenburg.de
+  license:
+    name: Apache 2.0
+    url: 'https://git.offis.uni-oldenburg.de/projects/PGESTREAM/repos/estream/browse/LICENSE'
+host: 'localhost:8080'
+basePath: /
+tags:
+  - name: Authentication
+  - name: Kafka
+  - name: Query
+  - name: Raw Data
+  - name: Template
+  - name: Tests
+  - name: Topology
+  - name: Users
+  - name: connector
+schemes:
+  - https
+paths:
+  /api/authentication/jwt:
+    post:
+      tags:
+        - Authentication
+      summary: Request to login.
+      description: REST request to login.
+      operationId: jwtLogin
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/AuthenticationDto'
+      responses:
+        '200':
+          description: the login was successfully
+          schema:
+            $ref: '#/definitions/AuthenticationResponseDto'
+        '405':
+          description: the login failed
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /api/authentication/jwt/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Request to refresh token.
+      description: REST request to refresh token.
+      operationId: jwtRefreshToken
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/AuthenticationRefreshDto'
+      responses:
+        '200':
+          description: the refresh was successfully
+          schema:
+            $ref: '#/definitions/AuthenticationResponseDto'
+        '405':
+          description: the refresh failed
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+  /api/connector:
+    post:
+      tags:
+        - connector
+      summary: adds a connector
+      description: adds a connector for the given ConnectorDto
+      operationId: addConnector
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ConnectorDto'
+      responses:
+        '200':
+          description: the connector was created successfully
+        '405':
+          description: the ConnectorDto contained invalid values
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  '/api/connector/{name}':
+    get:
+      tags:
+        - connector
+      summary: getEntity a connector by name
+      description: returns a connector with the given name
+      operationId: findConnectorByName
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: a connector with the given name was found
+          schema:
+            $ref: '#/definitions/ConnectorDto'
+        '404':
+          description: a connector with the given name was not found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - connector
+      summary: delete connector by name
+      description: deletes the connector with the given name
+      operationId: deleteConnector
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: the connector was deleted successfully
+        '404':
+          description: the connector with the given name was not found
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  /api/kafka/start:
+    post:
+      tags:
+        - Kafka
+      summary: Start the service.
+      description: Start the execution of pulling data from kafka
+      operationId: startKafka
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  /api/kafka/status:
+    get:
+      tags:
+        - Kafka
+      summary: Service-Status
+      description: Get the status of the service
+      operationId: kafkaStatus
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/StatusDTO'
+      security:
+        - Bearer: []
+  /api/kafka/stop:
+    post:
+      tags:
+        - Kafka
+      summary: Stop the service.
+      description: Stops the execution of pulling data from kafka
+      operationId: stopKafka
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  /api/kafka/topic/all:
+    get:
+      tags:
+        - Kafka
+      summary: Get all subscribed topics
+      description: Returns all currently subscribed topics.
+      operationId: getAllKafkaTopics
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TopicDTO'
+      security:
+        - Bearer: []
+  '/api/kafka/topic/create/{topic}':
+    put:
+      tags:
+        - Kafka
+      summary: Create a topic.
+      description: Create a topic.
+      operationId: createTopic
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  '/api/kafka/topic/delete/{topic}':
+    delete:
+      tags:
+        - Kafka
+      summary: Delete a topic.
+      description: Delete a topic. This operation depends on the kafka settings and may not work
+      operationId: deleteTopic
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  '/api/kafka/topic/subscribe/{topic}':
+    post:
+      tags:
+        - Kafka
+      summary: Subscribe to a specific topic
+      description: Subscribes to the given topic.
+      operationId: subscribeToTopic
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  '/api/kafka/topic/unsubscribe/{topic}':
+    post:
+      tags:
+        - Kafka
+      summary: Unsubscribe from a specific topic
+      description: Remove the subscription from the given topic.
+      operationId: unsubscribeFromTopic
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description: successful operation
+      security:
+        - Bearer: []
+  /api/queries/:
+    get:
+      tags:
+        - Query
+      summary: Request all queries
+      description: REST request to get a all queries.
+      operationId: getQueries
+      responses:
+        '200':
+          description: All existing queries were returned.
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/getEntity/{queryId}':
+    get:
+      tags:
+        - Query
+      summary: Request to get status of a query
+      description: REST request to get QueryStatus of a query.
+      operationId: getQueryStatus
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/getQueryString/{queryId}':
+    get:
+      tags:
+        - Query
+      summary: Request to remove query
+      description: REST request to the string representation of a query.
+      operationId: getQueryString
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: string
+      security:
+        - Bearer: []
+  /api/queries/registerQuery:
+    post:
+      tags:
+        - Query
+      summary: Request to register query
+      description: REST request to register a query.
+      operationId: registerQuery
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/RegisterQueryDto'
+      responses:
+        '200':
+          description: User password was changed successfully.
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+        '404':
+          description: No user with the given ID exists.
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  '/api/queries/removeQuery/{queryId}':
+    delete:
+      tags:
+        - Query
+      summary: Request to remove query
+      description: REST request to remove a query.
+      operationId: removeQuery
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/startQuery/{queryId}':
+    post:
+      tags:
+        - Query
+      summary: Request to start query
+      description: REST request to start a query.
+      operationId: startQuery
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/stopQuery/{queryId}':
+    post:
+      tags:
+        - Query
+      summary: Request to stop query
+      description: REST request to stop a query.
+      operationId: stopQuery
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/suspendQuery/{queryId}':
+    post:
+      tags:
+        - Query
+      summary: Request to suspend query
+      description: REST request to suspend a query.
+      operationId: suspendQuery
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  '/api/queries/updateQuery/{queryId}':
+    put:
+      tags:
+        - Query
+      summary: Request to update query
+      description: REST request to update a query.
+      operationId: updateQuery
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/UpdateQueryDto'
+        - name: queryId
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/QueryStatusDto'
+      security:
+        - Bearer: []
+  /api/rawdata/:
+    get:
+      tags:
+        - Raw Data
+      summary: Request to get Kafka URI and topic name
+      description: Returns a TopicResponse with the Kafka URI and a topic name where the raw data is streamed
+      operationId: getRawDataTopic
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TopicResponseDTO'
+      security:
+        - Bearer: []
+  /api/templates/:
+    get:
+      tags:
+        - Template
+      summary: Request all templates
+      description: REST request to get a all templates.
+      operationId: getTemplates
+      responses:
+        '200':
+          description: All existing templates were returned.
+          schema:
+            $ref: '#/definitions/TemplateDto'
+      security:
+        - Bearer: []
+  /api/tests/createNewMiningModel:
+    post:
+      tags:
+        - Tests
+      summary: create new mining model
+      description: creates a new mining model
+      operationId: triggerCommissionNewMiningModelApiCall
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/PmmlModelRequest'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TopicResponse'
+  /api/tests/getLatestMiningModel:
+    post:
+      tags:
+        - Tests
+      summary: get latest mining model
+      description: returns the latest mining model
+      operationId: triggerLatestMiningModelApiCall
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/PmmlModelRequest'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/PmmlModelResponse'
+  /api/tests/webSocketRawDataTest:
+    post:
+      tags:
+        - Tests
+      summary: send rawdata
+      description: sends rawdata to the rawdata websocket topic
+      operationId: rawDataTest
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/RawData'
+      responses:
+        default:
+          description: successful operation
+  '/api/tests/webSocketTest/{webSocketTopic}':
+    post:
+      tags:
+        - Tests
+      summary: send websocket data
+      description: sends data to the websocket topic
+      operationId: webSocketTest
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            type: string
+        - name: webSocketTopic
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description: successful operation
+  /api/topology/:
+    get:
+      tags:
+        - Topology
+      summary: get topology
+      description: returns the last topology
+      operationId: getTopology
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/IHierarchyNode'
+      security:
+        - Bearer: []
+  /api/users/:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: Returns all currently saved users.
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserDto'
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: Tries to create a new user corresponding to the passed data.
+      operationId: createUser
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/UserDto'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/UserDto'
+        '201':
+          description: User was created successfully.
+          schema:
+            $ref: '#/definitions/UserDto'
+        '400':
+          description: Bad request. This could happen if the username/email is already taken or the user ID was manually set!
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+    put:
+      tags:
+        - Users
+      summary: Update a user
+      description: Tries to update an existing user corresponding to the passed data.
+      operationId: updateUser
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/UserDto'
+      responses:
+        '200':
+          description: User was updated successfully.
+          schema:
+            $ref: '#/definitions/UserDto'
+        '404':
+          description: Not found! This could happen if an admin tries to update a non existing user.
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  /api/users/changePassword:
+    put:
+      tags:
+        - Users
+      summary: Change user password
+      description: Changes the password of a user.
+      operationId: changePassword
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ChangePasswordDto'
+      responses:
+        '200':
+          description: User password was changed successfully.
+        '404':
+          description: No user with the given ID exists.
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Get logged in user
+      description: Gets the user object of the currently logged in user.
+      operationId: getMe
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/UserDto'
+        '404':
+          description: No user with the given ID exists.
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+  '/api/users/{id}':
+    get:
+      tags:
+        - Users
+      summary: Get a user by ID
+      description: Returns a user by a given user ID. The user ID needs to be greater than 0.
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/UserEntity'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Users
+      summary: Delete a user by ID
+      description: Deletes a user by a given user ID. The user ID needs to be greater than 0.
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: User was deleted successfully.
+        '404':
+          description: No user with the given ID exists.
+          schema:
+            $ref: '#/definitions/BaseErrorResponse'
+      security:
+        - Bearer: []
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+definitions:
+  AuthenticationDto:
+    type: object
+    required:
+      - password
+      - username
+    properties:
+      username:
+        type: string
+        description: The unique username
+      password:
+        type: string
+        description: The password of the user
+  AuthenticationRefreshDto:
+    type: object
+    properties:
+      refreshToken:
+        type: string
+      grantType:
+        type: string
+        enum:
+          - REFRESH_TOKEN
+  AuthenticationResponseDto:
+    type: object
+    properties:
+      tokenType:
+        type: string
+        enum:
+          - BEARER
+      accessToken:
+        type: string
+      expiresIn:
+        type: integer
+        format: int64
+      refreshToken:
+        type: string
+  BaseErrorResponse:
+    type: object
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+      status:
+        type: integer
+        format: int32
+      error:
+        type: string
+      exception:
+        type: string
+      message:
+        type: string
+      path:
+        type: string
+  ChangePasswordDto:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: The unique identifier of a user.
+        readOnly: true
+      username:
+        type: string
+        description: The unique username of a user.
+        readOnly: true
+      newPassword:
+        type: string
+        description: The new password for a user.
+    description: Dto for changing a users password.
+  ConnectionType:
+    type: object
+    properties:
+      dataFormat:
+        type: string
+        enum:
+          - RAW
+          - PROCESSED
+      modelId:
+        type: integer
+        format: int32
+  ConnectorDto:
+    type: object
+    properties:
+      name:
+        type: string
+      topics:
+        type: string
+      sinkUrl:
+        type: string
+      connectorType:
+        type: string
+        enum:
+          - HDFS
+          - JDBC
+          - FILE
+      connectorProperties:
+        type: object
+        additionalProperties:
+          type: string
+      connectionType:
+        $ref: '#/definitions/ConnectionType'
+      connectorStatus:
+        type: string
+        enum:
+          - UNASSIGNED
+          - RUNNING
+          - PAUSED
+          - FAILED
+  IHierarchyNode:
+    type: object
+    properties:
+      name:
+        type: string
+      properties:
+        type: array
+        items:
+          $ref: '#/definitions/IOptionalProperty'
+      id:
+        type: string
+      type:
+        type: string
+        enum:
+          - ROOT
+          - SUBGRID
+          - TRANSFORMATOR
+          - NODE
+          - SMGW
+          - SMART_METER
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/IHierarchyNode'
+  IOptionalProperty:
+    type: object
+    properties:
+      value:
+        type: object
+      key:
+        type: string
+        enum:
+          - location
+          - options
+          - tags
+  PmmlModelRequest:
+    type: object
+    properties:
+      broker:
+        type: string
+        example: kafka
+      pmml:
+        type: string
+    description: PMML model as base64 encoded json object
+  PmmlModelResponse:
+    type: object
+    properties:
+      pmml:
+        type: string
+    description: PMML model as base64 encoded json object
+  QueryStatusDto:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      serverName:
+        type: string
+      templateId:
+        type: integer
+        format: int64
+      id:
+        type: integer
+        format: int64
+      autorun:
+        type: boolean
+      creationTime:
+        type: string
+        format: date-time
+      scheduleStarttime:
+        type: string
+        format: date-time
+      scheduleEndtime:
+        type: string
+        format: date-time
+      user:
+        $ref: '#/definitions/UserDto'
+      status:
+        type: string
+        enum:
+          - ACKNOWLEDGED
+          - DECLINED
+          - CANCELED
+          - INSTALLED
+          - RUNNING
+          - SUSPENDED
+          - STOPPED
+          - REMOVED
+          - RUNNABLE
+      snippets:
+        type: array
+        items:
+          $ref: '#/definitions/SnippetDto'
+      webSocketTopicDto:
+        $ref: '#/definitions/WebSocketTopicDto'
+  RawData:
+    type: object
+    properties:
+      smgw_id:
+        type: string
+      sm_id:
+        type: string
+        readOnly: true
+      value:
+        type: number
+        format: double
+      scaler:
+        type: integer
+        format: int32
+      unit:
+        type: integer
+        format: int32
+      status:
+        type: string
+      capture_time:
+        type: integer
+        format: int64
+      type:
+        type: string
+      timeinterval_start:
+        type: integer
+        format: int64
+      timeinterval_end:
+        type: integer
+        format: int64
+      minlstart:
+        type: integer
+        format: int64
+      maxlstart:
+        type: integer
+        format: int64
+      lend:
+        type: integer
+        format: int64
+      latency:
+        type: integer
+        format: int64
+  RegisterQueryDto:
+    type: object
+    properties:
+      name:
+        type: string
+        example: test_query_1
+      description:
+        type: string
+        example: ' '
+      kafkaPMMLTopic:
+        type: string
+        example: ' '
+      userId:
+        type: integer
+        format: int64
+      autorun:
+        type: boolean
+        example: false
+      scheduled:
+        type: boolean
+      scheduleStarttime:
+        type: integer
+        format: int64
+      scheduleEndtime:
+        type: integer
+        format: int64
+      templateId:
+        type: integer
+        format: int64
+        example: 2
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/SnippetValueDto'
+  SnippetDto:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - SOURCE
+          - SINK
+          - PIPE
+          - KAFKA_IN
+          - KAFKA_OUT
+          - KAFKA_NOTIFY
+          - KAFKA_PMMAL_IN
+          - KAFKA_PMML_OUT
+          - PMML
+      notify:
+        type: boolean
+      missingKeys:
+        type: array
+        items:
+          $ref: '#/definitions/TemplateValueDto'
+  SnippetValueDto:
+    type: object
+    properties:
+      keyId:
+        type: integer
+        format: int64
+        example: 8
+      snippetId:
+        type: integer
+        format: int64
+        example: 5
+      value:
+        type: object
+        example: test
+  StatusDTO:
+    type: object
+    properties:
+      status:
+        type: boolean
+  TemplateDto:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      description:
+        type: string
+      userId:
+        type: integer
+        format: int64
+      templateType:
+        $ref: '#/definitions/TemplateTypeDto'
+      snippets:
+        type: array
+        items:
+          $ref: '#/definitions/TemplateSnippetDto'
+  TemplateSnippetDto:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      snippetOrder:
+        type: integer
+        format: int32
+      snippet:
+        $ref: '#/definitions/SnippetDto'
+  TemplateTypeDto:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      description:
+        type: string
+  TemplateValueDto:
+    type: object
+    properties:
+      keyId:
+        type: integer
+        format: int64
+      name:
+        type: string
+      description:
+        type: string
+      value:
+        type: object
+      defaultValue:
+        type: object
+      referenceName:
+        type: string
+      status:
+        type: string
+        enum:
+          - OK
+          - NO_DEFAULT
+          - REFERENCE_NOT_FOUND
+      reference:
+        type: boolean
+      generated:
+        type: boolean
+      required:
+        type: boolean
+      userInput:
+        type: boolean
+  TopicDTO:
+    type: object
+    properties:
+      topics:
+        type: array
+        items:
+          type: string
+  TopicResponse:
+    type: object
+    properties:
+      uri:
+        type: string
+        example: 'localhost:12345'
+      topic:
+        type: string
+        example: 9bd2380a-1b30-4d89-85b1-139322bec43e
+    description: get topic with uri
+  TopicResponseDTO:
+    type: object
+    properties:
+      uri:
+        type: string
+      topic:
+        type: string
+  TopicWrapper:
+    type: object
+    properties:
+      topic:
+        type: string
+      type:
+        type: string
+      key:
+        type: string
+  UpdateQueryDto:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/SnippetValueDto'
+      scheduleStarttime:
+        type: string
+        format: date-time
+      scheduleEndtime:
+        type: string
+        format: date-time
+  UserDto:
+    type: object
+    required:
+      - email
+      - username
+    properties:
+      id:
+        type: integer
+        format: int64
+        example: 1
+        description: The unique identifier of a user.
+        readOnly: true
+      email:
+        type: string
+        example: A@B.de
+        description: The email of a user.
+      username:
+        type: string
+        example: admin
+        description: The unique username a user.
+      firstname:
+        type: string
+        example: Chris P.
+        description: The firstname of a user.
+      lastname:
+        type: string
+        example: Bacon
+        description: The lastname of a user.
+      roles:
+        type: array
+        description: The roles of a user.
+        uniqueItems: true
+        items:
+          type: string
+    description: 'Base Dto for user corresponding interactions, wrapping necessary user information.'
+  UserEntity:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      username:
+        type: string
+      password:
+        type: string
+      lastname:
+        type: string
+      email:
+        type: string
+        minLength: 5
+        maxLength: 100
+      firstname:
+        type: string
+  WebSocketTopicDto:
+    type: object
+    properties:
+      topics:
+        type: array
+        items:
+          $ref: '#/definitions/TopicWrapper'
