@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.0.10
+  version: 0.0.11
   title: PG-Dave Mock API
 host: '127.0.0.1:9090'
 basePath: /api
@@ -12,7 +12,7 @@ consumes:
 produces:
   - application/json
 paths:
-  '/data/smgw/{topic}':
+  '/data/smgws/{topic}':
     get:
       tags:
         - HistoricData
@@ -216,13 +216,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/BaseErrorResponse'
-  '/datamining/latests/{modelid}':
+  '/datamining/latests/{modelId}':
     get:
       tags:
         - DataMining
       description: |
         Returns latest build PMML model by a given modelId.
-      summary: Get latest PMML by Id
+      summary: Get latest PMML model by Id
       operationId: getLatestMiningModelById
       parameters:
         - in: path
@@ -253,7 +253,7 @@ paths:
         - DataMining
       description: |
         Returns latest PMML model for a given mining model specification.
-      summary: Get latest PMML
+      summary: Get latest PMML model by specification
       operationId: getLatestMiningModelByPMML
       parameters:
         - in: body
@@ -265,7 +265,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/PmmlModelResponse'
+            $ref: '#/definitions/TopicResponse'
         '204':
           description: There is no latest model for the requested specification.
         '400':
@@ -305,7 +305,7 @@ paths:
         Request a new PMML model with results matching the passed model
         specification. After building a valid requested model it will be
         published on the message broker at the topic provided in the response
-      summary: Request to build a PMML model by specifications
+      summary: Request to build a PMML model by specification
       operationId: createDataMiningAnalysis
       parameters:
         - in: body
@@ -629,7 +629,7 @@ definitions:
       pmml:
         type: string
   ModelsResponse:
-    description: Which Models offer DAvE
+    description: Data transfer object for uniquely describing a stored pmml model by id. 
     type: array
     items:
       type: object
@@ -640,10 +640,10 @@ definitions:
         name:
           type: string
           example: Support Vector Machine
-        discription:
+        description:
           type: string
           example: Forecast model for power consumption
-        lastbuild:
+        lastBuild:
           type: integer
           format: int64
           description: Date and time as unix epoch time
